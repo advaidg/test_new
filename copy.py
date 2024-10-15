@@ -1,7 +1,13 @@
 import os
 import shutil
-from concurrent.futures import ThreadPoolExecutor
 import sys
+from concurrent.futures import ThreadPoolExecutor
+
+# Python 2 compatibility
+try:
+    input = raw_input
+except NameError:
+    pass
 
 def copy_file(file_name, source_dir, dest_dir):
     try:
@@ -11,27 +17,29 @@ def copy_file(file_name, source_dir, dest_dir):
 
         if os.path.isfile(source_path):
             shutil.copy2(source_path, dest_path)
-            print(f"Copied {file_name} to {dest_dir}")
+            print("Copied {} to {}".format(file_name, dest_dir))
         else:
-            print(f"File {file_name} not found in {source_dir}")
+            print("File {} not found in {}".format(file_name, source_dir))
     except Exception as e:
-        print(f"Error copying {file_name}: {e}")
+        print("Error copying {}: {}".format(file_name, str(e)))
 
 def copy_files(source_dir, dest_dir, filename_list, num_workers=8):
     if not os.path.exists(dest_dir):
         os.makedirs(dest_dir)
 
     try:
-        with open(filename_list, 'r', encoding='utf-8') as f:
+        with open(filename_list, 'r') as f:
             files = f.readlines()
-    except FileNotFoundError:
-        print(f"File {filename_list} not found.")
+    except IOError:
+        print("File {} not found.".format(filename_list))
         return
     except Exception as e:
-        print(f"Error reading file list: {e}")
+        print("Error reading file list: {}".format(str(e)))
         return
 
-    with ThreadPoolExecutor(max_workers=num_workers) as executor:
+    # Python 2 does not support ThreadPoolExecutor directly, use a workaround
+    from concurrent.futures import ProcessPoolExecutor
+    with ProcessPoolExecutor(max_workers=num_workers) as executor:
         for file_name in files:
             executor.submit(copy_file, file_name, source_dir, dest_dir)
 
