@@ -1,0 +1,12 @@
+
+python3 -c "
+import zlib, base64
+with open('large_script.sh', 'rb') as f:
+    data = f.read()
+compressed_data = zlib.compress(data)
+encoded_data = base64.b85encode(compressed_data).decode('utf-8')
+print(encoded_data)
+" > encoded_script.txt
+
+# View the encoded string
+cat encoded_script.txt
